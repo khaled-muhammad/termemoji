@@ -12,12 +12,14 @@ class GameLogic:
         
     def handle_player_input(self, player, keys, projectiles, combo_messages):
         if not player.is_alive:
-            return
+            return False, 0
             
         base_speed = 20.0
         speed = base_speed * player.get_speed_multiplier()
         jump_speed = -20.0
         atk_speed = 25.0
+        did_attack = False
+        attack_dir = 0
         
         if keys.get(ord('a')):
             player.vx = -speed
@@ -39,6 +41,8 @@ class GameLogic:
             projectile = Projectile(player.x + dir*1.1, player.y-0.5, pvx, 0, '🔸', player, damage)
             projectiles.append(projectile)
             player.cooldown = 0.6
+            did_attack = True
+            attack_dir = dir
             
             player.combo_count += 1
             player.combo_timer = 1.0
@@ -48,6 +52,8 @@ class GameLogic:
         if keys.get(ord('f')) and player.special_cooldown <= 0:
             self._handle_special_ability(player, projectiles, atk_speed)
             
+        return did_attack, attack_dir
+    
     def _handle_special_ability(self, player, projectiles, atk_speed):
         for angle in range(-30, 31, 15):
             rad = math.radians(angle)
@@ -129,12 +135,14 @@ class GameLogic:
                     a.vx = ax*0.5 + bx*0.5
                     b.vx = bx*0.5 + ax*0.5
                     
-    def handle_projectile_collisions(self, projectiles, entities, particles, messages):
+    def handle_projectile_collisions(self, projectiles, entities, particles, messages, collision_filter=None):
         for p in projectiles[:]:
             for e in entities:
                 if not e.is_alive or e.invulnerable: 
                     continue
                 if e is p.owner: 
+                    continue
+                if collision_filter is not None and not collision_filter(p, e):
                     continue
                 
                 if abs(e.x - p.x) < 1.0 and abs(e.y - p.y) < 1.0:
@@ -191,8 +199,12 @@ class GameLogic:
             if particle.update(dt):
                 particles.remove(particle)
                 
-    def update_entities(self, entities, dt):
+    def update_entities(self, entities, dt, skip=None):
+        if skip is None:
+            skip = set()
         for e in entities:
+            if e in skip:
+                continue
             if not e.is_alive:
                 e.respawn_timer -= dt
                 if e.respawn_timer <= 0:
