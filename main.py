@@ -29,7 +29,7 @@ def main(stdscr):
     player = Entity(4, ground_row - 1, '😎', name="You", ai=False)
     entities.append(player)
     
-    ai_entities = create_ai_entities(max_x, ground_row, count=5)
+    ai_entities = create_ai_entities(max_x, ground_row, count=2)
     entities.extend(ai_entities)
 
     projectiles = []

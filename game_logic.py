@@ -21,8 +21,10 @@ class GameLogic:
         
         if keys.get(ord('a')):
             player.vx = -speed
+            player.facing_dir = -1
         elif keys.get(ord('d')):
             player.vx = speed
+            player.facing_dir = 1
         else:
             player.vx = 0
             
@@ -31,13 +33,7 @@ class GameLogic:
             player.on_ground = False
             
         if keys.get(ord('s')) and player.cooldown <= 0:
-            if keys.get(ord('a')):
-                dir = -1
-            elif keys.get(ord('d')):
-                dir = 1
-            else:
-                dir = 1 if player.vx >= 0 else -1
-                
+            dir = player.facing_dir
             pvx = atk_speed * dir
             damage = 20 * player.get_damage_multiplier()
             projectile = Projectile(player.x + dir*1.1, player.y-0.5, pvx, 0, '🔸', player, damage)

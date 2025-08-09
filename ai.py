@@ -5,10 +5,10 @@ from models import Entity, Projectile
 
 class AIController:
     def __init__(self):
-        self.attack_probability = 0.04
-        self.jump_probability = 0.03
-        self.special_probability = 0.02
-        self.taunt_probability = 0.3
+        self.attack_probability = 0.02
+        self.jump_probability = 0.015
+        self.special_probability = 0.01
+        self.taunt_probability = 0.2
 
     def update_ai_entity(self, entity, entities, projectiles, messages, dt):
         if not entity.ai or not entity.is_alive:
@@ -30,7 +30,7 @@ class AIController:
 
     def _handle_movement(self, entity, dx):
         if abs(dx) > 2:
-            entity.vx = 10.0 * (1 if dx > 0 else -1) * entity.get_speed_multiplier()
+            entity.vx = 7.0 * (1 if dx > 0 else -1) * entity.get_speed_multiplier()
         else:
             entity.vx = 0
 
@@ -46,14 +46,14 @@ class AIController:
             projectile = Projectile(
                 entity.x + dir*1.1, 
                 entity.y-0.5, 
-                25.0*dir, 
+                18.0*dir, 
                 0, 
                 '⚡', 
                 entity, 
                 damage
             )
             projectiles.append(projectile)
-            entity.cooldown = 0.8
+            entity.cooldown = 1.2
             
             if random.random() < self.taunt_probability:
                 taunt = random.choice(AI_TAUNTS)
@@ -66,8 +66,8 @@ class AIController:
                 dy = target.y - entity.y
                 dist_to_target = math.hypot(dx, dy)
                 if dist_to_target > 0:
-                    vx = (dx / dist_to_target) * 15
-                    vy = (dy / dist_to_target) * 15
+                    vx = (dx / dist_to_target) * 12
+                    vy = (dy / dist_to_target) * 12
                     projectile = Projectile(
                         entity.x, 
                         entity.y-0.5, 
@@ -79,7 +79,7 @@ class AIController:
                         special=True
                     )
                     projectiles.append(projectile)
-            entity.special_cooldown = 4.0
+            entity.special_cooldown = 5.0
 
 def create_ai_entities(max_x, ground_row, count=5):
     from utils import EMOJI_CHARACTERS, get_random_position

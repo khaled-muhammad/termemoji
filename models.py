@@ -35,6 +35,7 @@ class Entity:
         self.animation_frame = 0.0
         self.trail_positions = []
         self.special_effect_timer = 0.0
+        self.facing_dir = 1
 
     def respawn(self, x, y):
         self.x = x
