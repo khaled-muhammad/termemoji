@@ -45,9 +45,15 @@ jobs:
       run: |
         python build.py
 
-    - name: Package build
+    - name: Package build (Linux/macOS)
+      if: runner.os != 'Windows'
       run: |
         zip -r termemoji-${{ matrix.os }}.zip dist/
+
+    - name: Package build (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        Compress-Archive -Path dist\* -DestinationPath termemoji-${{ matrix.os }}.zip
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
