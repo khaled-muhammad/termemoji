@@ -59,7 +59,7 @@ class ClientHandler(socketserver.BaseRequestHandler):
                     room["names"][self]["ready"] = self.ready
             self._broadcast_lobby_state()
             self._check_game_start()
-        elif mtype in ("state", "attack", "leave"):
+        elif mtype in ("state", "attack", "respawn", "leave"):
             self._relay_to_room(msg)
         else:
             pass

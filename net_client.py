@@ -56,6 +56,9 @@ class NetClient:
     def send_attack(self, x, y, dir):
         self._send({"type": "attack", "x": x, "y": y, "dir": dir})
 
+    def send_respawn(self, x, y):
+        self._send({"type": "respawn", "x": x, "y": y})
+
     def leave(self):
         self._send({"type": "leave"})
 

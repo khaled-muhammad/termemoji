@@ -73,6 +73,12 @@ def main(stdscr):
     def push_combo_msg(txt, x, y, ttl=1.0):
         combo_messages.append([ttl, txt, x, y])
 
+    def get_deterministic_spawn_position(player_index, total_players):
+        spacing = (max_x - 10) / max(1, total_players - 1)
+        x = 5 + (player_index * spacing)
+        y = ground_row - 0.5  # Match physics ground level
+        return x, y
+
     net = None
     remote_entities = {}
     remote_by_id = {}
@@ -103,10 +109,13 @@ def main(stdscr):
             lobby_players = net.lobby_state.get("players", [])
             push_msg(f"Starting battle with {len(lobby_players)} players!", ttl=3.0)
             
-            for info in lobby_players:
+            sorted_players = sorted(lobby_players, key=lambda p: p.get("id", ""))
+            
+            for i, info in enumerate(sorted_players):
                 rid = info.get("id")
                 if rid != net.client_id:
-                    e = Entity(random.randint(10, max_x-6), ground_row - 1, info.get("ch") or '🙂', name=info.get("name") or "Remote", ai=False)
+                    x, y = get_deterministic_spawn_position(i, len(sorted_players))
+                    e = Entity(x, y, info.get("ch") or '🙂', name=info.get("name") or "Remote", ai=False)
                     remote_entities[rid] = e
                     remote_by_id[e] = rid
                     entities.append(e)
@@ -118,7 +127,8 @@ def main(stdscr):
             time.sleep(2)
             return
 
-    player = Entity(4, ground_row - 1, '😎', name="You", ai=False)
+    player = Entity(4, ground_row - 0.5, '😎', name="You", ai=False)
+    player.was_alive = True
     entities.append(player)
     
     if not multiplayer:
@@ -165,11 +175,15 @@ def main(stdscr):
                     mtype = msg.get("type")
                     if mtype == "welcome":
                         client_id = msg.get("id")
-                        for info in msg.get("players", []):
+                        players = msg.get("players", [])
+                        sorted_players = sorted(players, key=lambda p: p.get("id", ""))
+                        
+                        for i, info in enumerate(sorted_players):
                             rid = info.get("id")
                             if rid in remote_entities:
                                 continue
-                            e = Entity(random.randint(10, max_x-6), ground_row - 1, info.get("ch") or '🙂', name=info.get("name") or "Remote", ai=False)
+                            x, y = get_deterministic_spawn_position(i, len(sorted_players) + 1)  # +1 for self
+                            e = Entity(x, y, info.get("ch") or '🙂', name=info.get("name") or "Remote", ai=False)
                             remote_entities[rid] = e
                             remote_by_id[e] = rid
                             entities.append(e)
@@ -177,7 +191,10 @@ def main(stdscr):
                     elif mtype == "player_joined":
                         rid = msg.get("id")
                         if rid and rid not in remote_entities:
-                            e = Entity(random.randint(10, max_x-6), ground_row - 1, msg.get("ch") or '🙂', name=msg.get("name") or "Remote", ai=False)
+                            total_players = len(remote_entities) + 2  # +2 for self and new player
+                            player_index = len(remote_entities) + 1  # +1 because we are 0-indexed
+                            x, y = get_deterministic_spawn_position(player_index, total_players)
+                            e = Entity(x, y, msg.get("ch") or '🙂', name=msg.get("name") or "Remote", ai=False)
                             remote_entities[rid] = e
                             remote_by_id[e] = rid
                             entities.append(e)
@@ -189,10 +206,14 @@ def main(stdscr):
                             entities.remove(e)
                             remote_by_id.pop(e, None)
                     elif mtype == "lobby_state":
-                        for info in msg.get("players", []):
+                        players = msg.get("players", [])
+                        sorted_players = sorted(players, key=lambda p: p.get("id", ""))
+                        
+                        for i, info in enumerate(sorted_players):
                             rid = info.get("id")
                             if rid != client_id and rid not in remote_entities:
-                                e = Entity(random.randint(10, max_x-6), ground_row - 1, info.get("ch") or '🙂', name=info.get("name") or "Remote", ai=False)
+                                x, y = get_deterministic_spawn_position(i, len(sorted_players))
+                                e = Entity(x, y, info.get("ch") or '🙂', name=info.get("name") or "Remote", ai=False)
                                 remote_entities[rid] = e
                                 remote_by_id[e] = rid
                                 entities.append(e)
@@ -214,6 +235,14 @@ def main(stdscr):
                             pvx = atk_speed * dir
                             proj = Projectile(e.x + dir*1.1, e.y-0.5, pvx, 0, '⚡', e, 20)
                             projectiles.append(proj)
+                    elif mtype == "respawn":
+                        rid = msg.get("id")
+                        e = remote_entities.get(rid)
+                        if e:
+                            x = float(msg.get("x", e.x))
+                            y = float(msg.get("y", e.y))
+                            e.respawn(x, y)
+                            push_msg(f"{e.name} respawned!", ttl=2.0)
             except queue.Empty:
                 pass
             except Exception:
@@ -246,6 +275,11 @@ def main(stdscr):
                 net.send_state(player.x, player.y, player.hp)
             if did_attack:
                 net.send_attack(player.x, player.y, attack_dir)
+            
+            if not player.was_alive and player.is_alive:
+                net.send_respawn(player.x, player.y)
+                push_msg("You respawned!", ttl=2.0)
+            player.was_alive = player.is_alive
 
         if not multiplayer:
             power_ups = game_logic.handle_power_up_collection(power_ups, entities, particles, messages)
