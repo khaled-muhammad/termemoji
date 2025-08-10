@@ -243,6 +243,7 @@ def main(stdscr):
                             y = float(msg.get("y", e.y))
                             e.respawn(x, y)
                             push_msg(f"{e.name} respawned!", ttl=2.0)
+                            push_msg(f"Remote respawn at ({x:.1f}, {y:.1f})", ttl=1.0)
             except queue.Empty:
                 pass
             except Exception:
@@ -250,6 +251,14 @@ def main(stdscr):
 
         skip_set = set(remote_entities.values()) if multiplayer else set()
         game_logic.update_entities(entities, elapsed, skip=skip_set)
+        
+        if multiplayer:
+            for e in remote_entities.values():
+                e.animation_frame += elapsed * 10
+                if e.invulnerable:
+                    e.invulnerable_timer -= elapsed
+                    if e.invulnerable_timer <= 0:
+                        e.invulnerable = False
         game_logic.handle_entity_collisions(entities)
 
         def collision_filter(p, e):
@@ -279,6 +288,7 @@ def main(stdscr):
             if not player.was_alive and player.is_alive:
                 net.send_respawn(player.x, player.y)
                 push_msg("You respawned!", ttl=2.0)
+                push_msg(f"Sent respawn at ({player.x:.1f}, {player.y:.1f})", ttl=1.0)
             player.was_alive = player.is_alive
 
         if not multiplayer:
