@@ -171,6 +171,16 @@ def main():
             print("Failed to install PyInstaller")
             return False
     
+    # Install Windows-specific dependencies
+    if platform.system().lower() == 'windows':
+        try:
+            import curses
+        except ImportError:
+            print("Windows-curses not found. Installing...")
+            if not run_command([sys.executable, '-m', 'pip', 'install', 'windows-curses']):
+                print("Failed to install windows-curses")
+                return False
+    
     # Clean previous builds
     clean_build()
     
