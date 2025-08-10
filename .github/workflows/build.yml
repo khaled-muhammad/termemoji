@@ -70,43 +70,37 @@ jobs:
     - name: Download all artifacts
       uses: actions/download-artifact@v4
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        draft: false
-        prerelease: false
+          - name: Create Release
+        id: create_release
+        run: |
+          gh release create ${{ github.ref_name }} \
+            --title "Release ${{ github.ref_name }}" \
+            --notes "Automated release for ${{ github.ref_name }}" \
+            --draft=false \
+            --prerelease=false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Upload Linux Assets
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./termemoji-ubuntu-latest/termemoji-linux.zip
-        asset_name: termemoji-linux-x64.zip
-        asset_content_type: application/zip
+          - name: Upload Linux Assets
+        run: |
+          gh release upload ${{ github.ref_name }} \
+            ./termemoji-ubuntu-latest/termemoji-linux.zip \
+            --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Upload Windows Assets
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./termemoji-windows-latest/termemoji-windows.zip
-        asset_name: termemoji-windows-x64.zip
-        asset_content_type: application/zip
+      - name: Upload Windows Assets
+        run: |
+          gh release upload ${{ github.ref_name }} \
+            ./termemoji-windows-latest/termemoji-windows.zip \
+            --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Upload macOS Assets
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./termemoji-macos-latest/termemoji-macos.zip
-        asset_name: termemoji-macos-x64.zip
-        asset_content_type: application/zip
+      - name: Upload macOS Assets
+        run: |
+          gh release upload ${{ github.ref_name }} \
+            ./termemoji-macos-latest/termemoji-macos.zip \
+            --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
