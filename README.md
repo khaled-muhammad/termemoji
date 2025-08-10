@@ -2,57 +2,6 @@
 
 An epic terminal-based emoji battle royale game with modular architecture, infinite respawns, power-ups, advanced AI, and multiplayer support!
 
-## 📦 Installation
-
-### Quick Install
-
-#### Windows
-1. Download the latest release from [GitHub Releases](https://github.com/yourusername/termemoji/releases)
-2. Extract the archive
-3. Double-click `install-windows.bat` or run:
-   ```cmd
-   python -m pip install -e .
-   ```
-
-#### macOS/Linux
-1. Download the latest release from [GitHub Releases](https://github.com/yourusername/termemoji/releases)
-2. Extract the archive
-3. Run:
-   ```bash
-   chmod +x install-unix.sh && ./install-unix.sh
-   ```
-   Or manually:
-   ```bash
-   python3 -m pip install -e .
-   ```
-
-### From Source
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/termemoji.git
-   cd termemoji
-   ```
-
-2. Install the game:
-   ```bash
-   python -m pip install -e .
-   ```
-
-3. Run the game:
-   ```bash
-   python main.py
-   ```
-
-### Using Make (Linux/macOS)
-
-```bash
-make install    # Install the package
-make run        # Run the game
-make run-server # Run the server
-make help       # Show all available commands
-```
-
 ## 🚀 Features
 
 ### 🔥 IMMORTAL FEATURES
@@ -104,27 +53,44 @@ make help       # Show all available commands
 - **🛡️ Shield**: Absorbs 50% damage for 5 seconds
 - **♾️ Infinite**: Complete immortality for 15 seconds
 
-## 🚀 Quick Start
+## 📦 Installation & Build
 
-### Single Player
+### 🚀 Quick Start (Pre-built Binaries)
+
+1. Go to the [Releases](https://github.com/yourusername/termemoji/releases) page
+2. Download the appropriate binary for your platform:
+   - `termemoji-linux-x64.zip` for Linux
+   - `termemoji-windows-x64.zip` for Windows
+   - `termemoji-macos-x64.zip` for macOS
+3. Extract the archive
+4. Run the game:
+   - **Linux/macOS**: `./run-game.sh` or `./termemoji`
+   - **Windows**: `run-game.bat` or `termemoji.exe`
+
+### 🔧 Build from Source
+
+1. Clone the repository:
 ```bash
-python main.py
-# Select option 1 for single player
+git clone https://github.com/yourusername/termemoji.git
+cd termemoji
 ```
 
-### Multiplayer
-1. Start the server:
-   ```bash
-   python server.py --host 0.0.0.0 --port 8765
-   ```
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-2. Start the game:
-   ```bash
-   python main.py
-   # Select option 2 or 3 for multiplayer
-   ```
+3. Build the binaries:
+```bash
+python build.py
+```
 
-## 🏗️ Modular Architecture
+4. Run the game:
+```bash
+python main.py
+```
+
+### 🏗️ Modular Architecture
 
 The game is built with a clean, modular architecture:
 
@@ -201,19 +167,12 @@ termemoji/
 ## 🚀 Installation & Running
 
 ### Prerequisites
-- Python 3.8+
+- Python 3.7+
 - Terminal with curses support
 
-### Windows Requirements
-Windows requires the `windows-curses` package for terminal support:
-
+### On Windows
 ```bash
 pip install windows-curses
-```
-
-Or install automatically with the game:
-```bash
-pip install -e .
 ```
 
 ### Running the Game
@@ -275,94 +234,48 @@ python main.py
 - Keep modules focused on single responsibility
 - Use type hints where helpful
 
-## 🎯 Future Enhancements
+## 🚀 Creating Releases
 
-- [ ] Multiple game modes
-- [ ] Save/load high scores
-- [ ] Custom character selection
-- [ ] Network multiplayer
-- [ ] Sound effects
-- [ ] More power-up types
-- [ ] Level progression system
+### Automated Releases (GitHub Actions)
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## 📦 Releases
-
-### Latest Release
-Download the latest release from [GitHub Releases](https://github.com/yourusername/termemoji/releases)
-
-### Release Assets
-- **Windows**: `termemoji-v1.0.0-windows.zip` - Windows installer and scripts
-- **macOS**: `termemoji-v1.0.0-macos.tar.gz` - macOS installer and scripts  
-- **Linux**: `termemoji-v1.0.0-linux.tar.gz` - Linux installer and scripts
-- **Source**: `termemoji-1.0.0.tar.gz` - Source distribution
-
-### Building Releases
+1. Create and push a tag:
 ```bash
-# Build release packages
-python build_release.py
-
-# Or use make
-make release
+git tag v1.0.0
+git push origin v1.0.0
 ```
 
-## 🔧 Development
+2. GitHub Actions will automatically:
+   - Build binaries for all platforms
+   - Create a GitHub release
+   - Upload the binaries as release assets
 
-### Prerequisites
-- Python 3.8+
-- Terminal with curses support
-- **Windows**: `windows-curses` package (installed automatically)
+### Manual Releases
 
-### Setup Development Environment
+1. Build for all platforms:
 ```bash
-# Install in development mode
-make install
-
-# Run tests
-make test
-
-# Build package
-make build
-
-# Clean build artifacts
-make clean
+python release.py v1.0.0
 ```
 
-### Adding New Features
+2. Or build only:
+```bash
+python release.py v1.0.0 --build-only
+```
 
-#### New Power-up Type
-1. Add to `POWERUP_TYPES` in `utils.py`
-2. Implement effect in `PowerUp.collect()` in `models.py`
-3. Add visual feedback in `renderer.py`
+3. Or create release only:
+```bash
+python release.py v1.0.0 --release-only
+```
 
-#### New AI Behavior
-1. Extend `AIController` in `ai.py`
-2. Add new methods for specific behaviors
-3. Update `update_ai_entity()` to use new logic
+### Build Scripts
 
-#### New Visual Effects
-1. Create new particle types in `models.py`
-2. Add rendering logic in `renderer.py`
-3. Integrate with `game_logic.py`
-
-### Code Style
-- Follow PEP 8
-- Use docstrings for all functions
-- Keep modules focused on single responsibility
-- Use type hints where helpful
+- `build.py`: Build game and server binaries
+- `release.py`: Create GitHub releases
+- `.github/workflows/build.yml`: Automated CI/CD
 
 ## 🎯 Future Enhancements
 
-- [x] Custom character selection ✅
-- [x] Network multiplayer ✅
-- [x] Lobby system ✅
+- [x] Custom character selection
+- [x] Network multiplayer
 - [ ] Multiple game modes
 - [ ] Save/load high scores
 - [ ] Sound effects
@@ -379,7 +292,7 @@ make clean
 
 ## 📄 License
 
-This project is open source and available under the [MIT License](LICENSE).
+This project is open source and available under the MIT License.
 
 ---
 

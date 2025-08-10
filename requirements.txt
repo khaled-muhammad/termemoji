@@ -1,8 +1,1 @@
-# Core dependencies for TermEmoji
-# Python version requirement
-# Requires Python 3.8 or higher for f-strings and other modern features
-
-# Platform-specific dependencies
-# Windows requires windows-curses for terminal support
-# Note: This will be handled by setup.py and pyproject.toml
-# The conditional syntax here is for pip install compatibility
+pyinstaller>=5.0.0
