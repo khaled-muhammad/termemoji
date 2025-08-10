@@ -12,14 +12,14 @@ class Character:
 CHARACTERS = {
     'warrior': Character(
         name="Warrior",
-        emoji="⚔️",
+        emoji="🗡️",
         ascii_char="W",
         description="Balanced fighter with high HP",
         stats={'hp': 120, 'speed': 1.0, 'damage': 1.0, 'special': 'charge'}
     ),
     'ninja': Character(
         name="Ninja", 
-        emoji="🥷",
+        emoji="🐲",
         ascii_char="N",
         description="Fast and agile with low HP",
         stats={'hp': 80, 'speed': 1.3, 'damage': 1.2, 'special': 'shadow_step'}
@@ -33,7 +33,7 @@ CHARACTERS = {
     ),
     'mage': Character(
         name="Mage",
-        emoji="🧙‍♂️",
+        emoji="🔮",
         ascii_char="M",
         description="High damage but fragile",
         stats={'hp': 70, 'speed': 0.9, 'damage': 1.4, 'special': 'fireball'}
@@ -54,7 +54,7 @@ CHARACTERS = {
     ),
     'monk': Character(
         name="Monk",
-        emoji="🧘‍♂️",
+        emoji="☯️",
         ascii_char="K",
         description="Balanced with healing ability",
         stats={'hp': 110, 'speed': 1.0, 'damage': 1.0, 'special': 'heal'}
