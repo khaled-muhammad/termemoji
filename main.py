@@ -14,6 +14,8 @@ from renderer import Renderer
 from game_logic import GameLogic
 from net_client import NetClient
 from lobby_screen import LobbyScreen
+from simple_char_select import SimpleCharacterSelect
+from characters import get_character, get_character_display_name, get_character_char
 
 
 def prompt_text(stdscr, y, x, prompt, default=""):
@@ -29,16 +31,19 @@ def prompt_text(stdscr, y, x, prompt, default=""):
 
 
 def choose_menu(stdscr):
-    stdscr.erase()
+    stdscr.clear()
     stdscr.addstr(2, 4, "TermEmoji")
     stdscr.addstr(4, 4, "1) Singleplayer")
     stdscr.addstr(5, 4, "2) Multiplayer: Join Room")
     stdscr.addstr(6, 4, "3) Multiplayer: Create Room")
-    stdscr.addstr(8, 4, "Q) Quit")
+    stdscr.addstr(7, 4, "4) Character Selection")
+    stdscr.addstr(9, 4, "Q) Quit")
     stdscr.refresh()
     while True:
         ch = stdscr.getch()
-        if ch in (ord('1'), ord('2'), ord('3'), ord('q'), ord('Q')):
+        if ch in (ord('1'), ord('2'), ord('3'), ord('4'), ord('q'), ord('Q')):
+            stdscr.clear()
+            stdscr.refresh()
             return chr(ch)
 
 
@@ -57,8 +62,28 @@ def main(stdscr):
     mode = choose_menu(stdscr)
     if mode in ('q', 'Q'):
         return
+    elif mode == '4':
+        char_select = SimpleCharacterSelect(stdscr)
+        selected_char = char_select.run()
+        if selected_char:
+            stdscr.clear()
+            stdscr.addstr(10, 4, f"Selected: {get_character_display_name(selected_char)}")
+            stdscr.refresh()
+            time.sleep(2)
+        stdscr.clear()
+        return
 
     multiplayer = mode in ('2', '3')
+    
+    char_select = SimpleCharacterSelect(stdscr)
+    selected_char = char_select.run()
+    if not selected_char:
+        stdscr.clear()
+        return
+    
+    stdscr.clear()
+    stdscr.refresh()
+    time.sleep(0.1)
 
     entities = []
     projectiles = []
@@ -100,7 +125,9 @@ def main(stdscr):
         net = NetClient(host, port)
         try:
             net.connect()
-            net.join(room, name, '😎')
+            char_data = get_character(selected_char)
+            char_emoji = get_character_char(selected_char, use_ascii=False)
+            net.join(room, name, char_emoji)
             
             lobby = LobbyScreen(stdscr, net)
             if not lobby.run():
@@ -115,7 +142,7 @@ def main(stdscr):
                 rid = info.get("id")
                 if rid != net.client_id:
                     x, y = get_deterministic_spawn_position(i, len(sorted_players))
-                    e = Entity(x, y, info.get("ch") or '🙂', name=info.get("name") or "Remote", ai=False)
+                    e = Entity(x, y, info.get("ch") or '🙂', name=info.get("name") or "Remote", ai=False, character_id=None)
                     remote_entities[rid] = e
                     remote_by_id[e] = rid
                     entities.append(e)
@@ -127,7 +154,9 @@ def main(stdscr):
             time.sleep(2)
             return
 
-    player = Entity(4, ground_row - 0.5, '😎', name="You", ai=False)
+    char_data = get_character(selected_char)
+    char_emoji = get_character_char(selected_char, use_ascii=False)
+    player = Entity(4, ground_row - 0.5, char_emoji, name=char_data.name, ai=False, character_id=selected_char)
     player.was_alive = True
     entities.append(player)
     
@@ -183,7 +212,7 @@ def main(stdscr):
                             if rid in remote_entities:
                                 continue
                             x, y = get_deterministic_spawn_position(i, len(sorted_players) + 1)  # +1 for self
-                            e = Entity(x, y, info.get("ch") or '🙂', name=info.get("name") or "Remote", ai=False)
+                            e = Entity(x, y, info.get("ch") or '🙂', name=info.get("name") or "Remote", ai=False, character_id=None)
                             remote_entities[rid] = e
                             remote_by_id[e] = rid
                             entities.append(e)
@@ -194,7 +223,7 @@ def main(stdscr):
                             total_players = len(remote_entities) + 2  # +2 for self and new player
                             player_index = len(remote_entities) + 1  # +1 because we are 0-indexed
                             x, y = get_deterministic_spawn_position(player_index, total_players)
-                            e = Entity(x, y, msg.get("ch") or '🙂', name=msg.get("name") or "Remote", ai=False)
+                            e = Entity(x, y, msg.get("ch") or '🙂', name=msg.get("name") or "Remote", ai=False, character_id=None)
                             remote_entities[rid] = e
                             remote_by_id[e] = rid
                             entities.append(e)
@@ -213,7 +242,7 @@ def main(stdscr):
                             rid = info.get("id")
                             if rid != client_id and rid not in remote_entities:
                                 x, y = get_deterministic_spawn_position(i, len(sorted_players))
-                                e = Entity(x, y, info.get("ch") or '🙂', name=info.get("name") or "Remote", ai=False)
+                                e = Entity(x, y, info.get("ch") or '🙂', name=info.get("name") or "Remote", ai=False, character_id=None)
                                 remote_entities[rid] = e
                                 remote_by_id[e] = rid
                                 entities.append(e)

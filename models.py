@@ -4,16 +4,31 @@ import time
 from utils import GRAVITY, POWERUP_TYPES
 
 class Entity:
-    def __init__(self, x, y, ch, name="E", ai=False):
+    def __init__(self, x, y, ch, name="E", ai=False, character_id=None):
         self.x = float(x)
         self.y = float(y)
         self.vx = 0.0
         self.vy = 0.0
         self.ch = ch
-        self.max_hp = 100
-        self.hp = self.max_hp
         self.name = name
         self.ai = ai
+        self.character_id = character_id
+        
+        if character_id:
+            from characters import get_character_stats
+            stats = get_character_stats(character_id)
+            self.max_hp = stats['hp']
+            self.hp = self.max_hp
+            self.speed_multiplier = stats['speed']
+            self.damage_multiplier = stats['damage']
+            self.special_ability = stats['special']
+        else:
+            self.max_hp = 100
+            self.hp = self.max_hp
+            self.speed_multiplier = 1.0
+            self.damage_multiplier = 1.0
+            self.special_ability = 'none'
+        
         self.on_ground = False
         self.cooldown = 0.0
         self.special_cooldown = 0.0
@@ -57,10 +72,14 @@ class Entity:
                     self.power_ups[power_type] = 0.0
 
     def get_speed_multiplier(self):
-        return 1.0 + (self.power_ups['speed'] * 0.5)
+        base_speed = getattr(self, 'speed_multiplier', 1.0)
+        power_up_bonus = 1.0 + (self.power_ups['speed'] * 0.5)
+        return base_speed * power_up_bonus
 
     def get_damage_multiplier(self):
-        return 1.0 + (self.power_ups['damage'] * 0.8)
+        base_damage = getattr(self, 'damage_multiplier', 1.0)
+        power_up_bonus = 1.0 + (self.power_ups['damage'] * 0.8)
+        return base_damage * power_up_bonus
 
     def has_shield(self):
         return self.power_ups['shield'] > 0
