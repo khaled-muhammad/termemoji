@@ -47,6 +47,7 @@ jobs:
         path: |
           termemoji-*.zip
           dist/
+        retention-days: 1
 
   release:
     needs: build
@@ -59,6 +60,9 @@ jobs:
 
     - name: Download all artifacts
       uses: actions/download-artifact@v4
+      with:
+        pattern: termemoji-*
+        merge-multiple: true
 
     - name: Create Release
       id: create_release
@@ -71,13 +75,22 @@ jobs:
         draft: false
         prerelease: false
 
+    - name: List downloaded artifacts
+      run: |
+        echo "Available files:"
+        ls -la
+        echo "Artifact directories:"
+        find . -name "termemoji-*" -type d
+        echo "Zip files:"
+        find . -name "*.zip" -type f
+
     - name: Upload Linux Assets
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./termemoji-ubuntu-latest/termemoji-ubuntu-latest.zip
+        asset_path: ./termemoji-ubuntu-latest.zip
         asset_name: termemoji-linux-x64.zip
         asset_content_type: application/zip
 
@@ -87,7 +100,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./termemoji-windows-latest/termemoji-windows-latest.zip
+        asset_path: ./termemoji-windows-latest.zip
         asset_name: termemoji-windows-x64.zip
         asset_content_type: application/zip
 
@@ -97,6 +110,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./termemoji-macos-latest/termemoji-macos-latest.zip
+        asset_path: ./termemoji-macos-latest.zip
         asset_name: termemoji-macos-x64.zip
         asset_content_type: application/zip
