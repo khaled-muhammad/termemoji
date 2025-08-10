@@ -36,7 +36,7 @@ jobs:
         python build.py
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: termemoji-${{ matrix.os }}
         path: |
@@ -53,7 +53,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Download all artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
 
     - name: Create Release
       id: create_release
@@ -67,7 +67,7 @@ jobs:
         prerelease: false
 
     - name: Upload Linux Assets
-      uses: actions/upload-release-asset@v1
+      uses: actions/upload-release-asset@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -77,7 +77,7 @@ jobs:
         asset_content_type: application/zip
 
     - name: Upload Windows Assets
-      uses: actions/upload-release-asset@v1
+      uses: actions/upload-release-asset@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -87,7 +87,7 @@ jobs:
         asset_content_type: application/zip
 
     - name: Upload macOS Assets
-      uses: actions/upload-release-asset@v1
+      uses: actions/upload-release-asset@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
