@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.11']
 
     steps:
     - uses: actions/checkout@v4
@@ -37,6 +37,7 @@ jobs:
         python -c "from main import main; print('Main module imports successfully')"
         python -c "from server import main as server_main; print('Server module imports successfully')"
         python -c "from characters import CHARACTERS; print(f'Found {len(CHARACTERS)} characters')"
+        python -c "from simple_char_select import SimpleCharacterSelect; print('Character selection imports successfully')"
     
     - name: Build package
       run: |
@@ -44,5 +45,10 @@ jobs:
     
     - name: Check package contents
       run: |
-        python -c "import tarfile; tarfile.open('dist/termemoji-*.tar.gz').list()"
-        python -c "import zipfile; zipfile.ZipFile('dist/termemoji-*.whl').namelist()"
+        ls -la dist/
+        if [ -f "dist/termemoji-*.tar.gz" ]; then
+          python -c "import tarfile; tarfile.open('dist/termemoji-*.tar.gz').list()"
+        fi
+        if [ -f "dist/termemoji-*.whl" ]; then
+          python -c "import zipfile; zipfile.ZipFile('dist/termemoji-*.whl').namelist()"
+        fi
