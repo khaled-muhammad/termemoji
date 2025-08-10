@@ -1,0 +1,4 @@
+# Windows-specific requirements for TermEmoji
+# Windows requires windows-curses for terminal support
+
+windows-curses>=2.3.0

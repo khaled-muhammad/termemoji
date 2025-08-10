@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "termemoji"
+version = "1.0.0"
+description = "A terminal-based emoji battle royale game with multiplayer support"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "TermEmoji Team", email = ""}
+]
+maintainers = [
+    {name = "TermEmoji Team", email = ""}
+]
+keywords = ["game", "terminal", "curses", "multiplayer", "battle-royale", "emoji"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "Topic :: Games/Entertainment",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "windows-curses; sys_platform == 'win32'",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/termemoji"
+Documentation = "https://github.com/yourusername/termemoji#readme"
+Repository = "https://github.com/yourusername/termemoji"
+"Bug Tracker" = "https://github.com/yourusername/termemoji/issues"
+
+[project.scripts]
+termemoji = "main:main"
+termemoji-server = "server:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["*"]
+exclude = ["tests*", "docs*", "build*", "dist*", "*.egg-info*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.py", "*.md", "*.txt"]
