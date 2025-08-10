@@ -38,6 +38,7 @@ jobs:
         python -c "from server import main as server_main; print('Server module imports successfully')"
         python -c "from characters import CHARACTERS; print(f'Found {len(CHARACTERS)} characters')"
         python -c "from simple_char_select import SimpleCharacterSelect; print('Character selection imports successfully')"
+        python -c "print('All imports successful!')"
     
     - name: Build package
       run: |

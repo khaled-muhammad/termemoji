@@ -190,7 +190,7 @@ class ClientHandler(socketserver.BaseRequestHandler):
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     allow_reuse_address = True
 
-if __name__ == "__main__":
+def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="0.0.0.0")
@@ -199,3 +199,6 @@ if __name__ == "__main__":
     with ThreadedTCPServer((args.host, args.port), ClientHandler) as server:
         print(f"Server listening on {args.host}:{args.port}")
         server.serve_forever()
+
+if __name__ == "__main__":
+    main()
