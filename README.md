@@ -1,6 +1,6 @@
 # 🔥 TermEmoji - IMMORTAL COOL PRO Battle Royale
 
-An epic terminal-based emoji battle royale game with modular architecture, infinite respawns, power-ups, and advanced AI!
+An epic terminal-based emoji battle royale game with modular architecture, infinite respawns, power-ups, advanced AI, and multiplayer support!
 
 ## 🚀 Features
 
@@ -25,13 +25,25 @@ An epic terminal-based emoji battle royale game with modular architecture, infin
 - **Smooth Gameplay**: 30 FPS with better physics
 - **Dynamic Power-ups**: Spawn randomly and provide temporary buffs
 
+### 🌐 MULTIPLAYER FEATURES
+- **Real-time Multiplayer**: Battle against other players online
+- **Lobby System**: Join rooms, see player list, ready states
+- **Game Start Countdown**: Automatic countdown when all players are ready
+- **Synchronized Combat**: Real-time position and attack synchronization
+- **Room-based Matchmaking**: Create or join specific game rooms
+
 ## 🎯 Controls
 
+### Singleplayer
 - **A/D**: Move left/right
 - **W**: Jump
 - **S**: Attack
 - **F**: Special ability (multi-shot)
 - **Q**: Quit
+
+### Multiplayer Lobby
+- **R**: Toggle ready state
+- **Q**: Quit lobby
 
 ## 💎 Power-ups
 
@@ -55,6 +67,9 @@ termemoji/
 ├── ai.py           # AI behavior and logic
 ├── renderer.py     # Rendering and UI components
 ├── game_logic.py   # Game mechanics and physics
+├── server.py       # Multiplayer server with lobby system
+├── net_client.py   # Network client for multiplayer
+├── lobby_screen.py # Lobby UI and management
 └── README.md       # This file
 ```
 
@@ -64,6 +79,7 @@ termemoji/
 - Game initialization and main loop
 - Input handling
 - Orchestrates all other modules
+- Multiplayer game flow
 
 #### `utils.py`
 - Game constants (FPS, gravity, controls)
@@ -95,6 +111,22 @@ termemoji/
 - Power-up collection
 - Message management
 
+#### `server.py`
+- **Multiplayer Server**: TCP socket server
+- **Room Management**: Create and manage game rooms
+- **Lobby System**: Handle ready states and countdown
+- **Client Synchronization**: Relay game state between players
+
+#### `net_client.py`
+- **Network Client**: TCP client for multiplayer
+- **Message Handling**: Send/receive game messages
+- **Connection Management**: Handle server connections
+
+#### `lobby_screen.py`
+- **Lobby UI**: Player list and ready states
+- **Countdown Display**: Game start countdown
+- **Input Handling**: Ready toggle and lobby controls
+
 ## 🚀 Installation & Running
 
 ### Prerequisites
@@ -107,17 +139,38 @@ pip install windows-curses
 ```
 
 ### Running the Game
+
+#### Singleplayer
 ```bash
 python main.py
+# Select "1) Singleplayer" from the menu
+```
+
+#### Multiplayer
+```bash
+# Start the server first
+python server.py --host 0.0.0.0 --port 8765
+
+# Then start clients in separate terminals
+python main.py
+# Select "2) Multiplayer: Join Room" or "3) Multiplayer: Create Room"
 ```
 
 ## 🎮 Gameplay
 
-1. **Start**: You spawn as 😎 with 5 AI opponents
+### Singleplayer
+1. **Start**: You spawn as 😎 with 2 AI opponents
 2. **Fight**: Use A/D to move, W to jump, S to attack
 3. **Power-ups**: Collect power-ups for temporary buffs
 4. **Special**: Press F for multi-shot special ability
 5. **Survive**: Respawn infinitely and build combos!
+
+### Multiplayer
+1. **Join Lobby**: Connect to server and join a room
+2. **Ready Up**: Press R to toggle ready state
+3. **Wait for Players**: Need at least 2 players ready
+4. **Countdown**: 5-second countdown when all ready
+5. **Battle**: Fight other players in real-time!
 
 ## 🔧 Development
 

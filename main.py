@@ -13,6 +13,7 @@ from ai import AIController, create_ai_entities
 from renderer import Renderer
 from game_logic import GameLogic
 from net_client import NetClient
+from lobby_screen import LobbyScreen
 
 
 def prompt_text(stdscr, y, x, prompt, default=""):
@@ -59,6 +60,19 @@ def main(stdscr):
 
     multiplayer = mode in ('2', '3')
 
+    entities = []
+    projectiles = []
+    particles = []
+    power_ups = [] if not multiplayer else []
+    messages = []
+    combo_messages = []
+    
+    def push_msg(txt, ttl=2.0, color=0):
+        messages.append([ttl, txt, color])
+
+    def push_combo_msg(txt, x, y, ttl=1.0):
+        combo_messages.append([ttl, txt, x, y])
+
     net = None
     remote_entities = {}
     remote_by_id = {}
@@ -81,14 +95,29 @@ def main(stdscr):
         try:
             net.connect()
             net.join(room, name, '😎')
+            
+            lobby = LobbyScreen(stdscr, net)
+            if not lobby.run():
+                return
+                
+            lobby_players = net.lobby_state.get("players", [])
+            push_msg(f"Starting battle with {len(lobby_players)} players!", ttl=3.0)
+            
+            for info in lobby_players:
+                rid = info.get("id")
+                if rid != net.client_id:
+                    e = Entity(random.randint(10, max_x-6), ground_row - 1, info.get("ch") or '🙂', name=info.get("name") or "Remote", ai=False)
+                    remote_entities[rid] = e
+                    remote_by_id[e] = rid
+                    entities.append(e)
+                    push_msg(f"{e.name} joined the battle!", ttl=2.0)
+                
         except Exception as e:
             stdscr.addstr(12, 4, f"Connect failed: {e}")
             stdscr.refresh()
             time.sleep(2)
             return
 
-    entities = []
-    
     player = Entity(4, ground_row - 1, '😎', name="You", ai=False)
     entities.append(player)
     
@@ -96,21 +125,9 @@ def main(stdscr):
         ai_entities = create_ai_entities(max_x, ground_row, count=2)
         entities.extend(ai_entities)
 
-    projectiles = []
-    particles = []
-    power_ups = [] if not multiplayer else []
-    messages = []
-    combo_messages = []
-
     last = time.time()
     game_time = 0.0
     state_timer = 0.0
-
-    def push_msg(txt, ttl=2.0, color=0):
-        messages.append([ttl, txt, color])
-
-    def push_combo_msg(txt, x, y, ttl=1.0):
-        combo_messages.append([ttl, txt, x, y])
 
     push_msg("🔥 IMMORTAL COOL PRO BATTLE ROYALE 🔥", ttl=4.0, color=curses.COLOR_RED)
     push_msg("Controls: A/D move, W jump, S attack, F special, Q quit", ttl=3.0)
@@ -171,6 +188,14 @@ def main(stdscr):
                         if e and e in entities:
                             entities.remove(e)
                             remote_by_id.pop(e, None)
+                    elif mtype == "lobby_state":
+                        for info in msg.get("players", []):
+                            rid = info.get("id")
+                            if rid != client_id and rid not in remote_entities:
+                                e = Entity(random.randint(10, max_x-6), ground_row - 1, info.get("ch") or '🙂', name=info.get("name") or "Remote", ai=False)
+                                remote_entities[rid] = e
+                                remote_by_id[e] = rid
+                                entities.append(e)
                     elif mtype == "state":
                         rid = msg.get("id")
                         if rid == client_id:
@@ -203,7 +228,6 @@ def main(stdscr):
                 return True
             is_remote_owner = p.owner in remote_by_id
             is_remote_target = e in remote_by_id
-            # Local projectiles only affect remote targets; remote projectiles only affect local
             if not is_remote_owner and is_remote_target:
                 return True
             if is_remote_owner and (not is_remote_target):

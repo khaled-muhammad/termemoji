@@ -3,10 +3,11 @@ import socketserver
 import threading
 import json
 import uuid
+import time
 
 rooms_lock = threading.Lock()
 rooms = {}
-# rooms: {room_id: {"clients": set(ClientHandler), "names": {handler: {"id": str, "name": str, "ch": str}}}}
+# rooms: {room_id: {"clients": set(ClientHandler), "names": {handler: {"id": str, "name": str, "ch": str, "ready": bool}}, "game_state": str, "countdown": float}}
 
 class ClientHandler(socketserver.BaseRequestHandler):
     def setup(self):
@@ -15,6 +16,7 @@ class ClientHandler(socketserver.BaseRequestHandler):
         self.client_id = None
         self.name = None
         self.ch = None
+        self.ready = False
 
     def handle(self):
         try:
@@ -48,6 +50,15 @@ class ClientHandler(socketserver.BaseRequestHandler):
             name = str(msg.get("name") or "anonymous")
             ch = str(msg.get("ch") or "🙂")
             self._join_room(room, name, ch)
+        elif mtype == "ready":
+            self.ready = bool(msg.get("ready", False))
+            # Update the ready state in the room
+            with rooms_lock:
+                room = rooms.get(self.room_id)
+                if room and self in room["names"]:
+                    room["names"][self]["ready"] = self.ready
+            self._broadcast_lobby_state()
+            self._check_game_start()
         elif mtype in ("state", "attack", "leave"):
             self._relay_to_room(msg)
         else:
@@ -67,15 +78,17 @@ class ClientHandler(socketserver.BaseRequestHandler):
         self.client_id = uuid.uuid4().hex[:8]
         self.name = name
         self.ch = ch
+        self.ready = False
         with rooms_lock:
-            room = rooms.setdefault(room_id, {"clients": set(), "names": {}})
+            room = rooms.setdefault(room_id, {"clients": set(), "names": {}, "game_state": "lobby", "countdown": 0.0})
             room["clients"].add(self)
-            room["names"][self] = {"id": self.client_id, "name": name, "ch": ch}
+            room["names"][self] = {"id": self.client_id, "name": name, "ch": ch, "ready": False}
             # Send existing players to this client
             existing = [v for h, v in room["names"].items() if h is not self]
         self._send({"type": "welcome", "id": self.client_id, "room": room_id, "players": existing})
         # Notify others about this join
         self._broadcast_to_room({"type": "player_joined", "id": self.client_id, "name": name, "ch": ch}, exclude_self=True)
+        self._broadcast_lobby_state()
 
     def _leave_room(self):
         if not self.room_id:
@@ -94,7 +107,59 @@ class ClientHandler(socketserver.BaseRequestHandler):
             else:
                 info = {"id": self.client_id}
         self._broadcast_to_room({"type": "player_left", "id": info.get("id")}, exclude_self=True)
+        self._broadcast_lobby_state()
         self.room_id = None
+
+    def _broadcast_lobby_state(self):
+        if not self.room_id:
+            return
+        with rooms_lock:
+            room = rooms.get(self.room_id)
+            if not room:
+                return
+            players = [v for v in room["names"].values()]
+            game_state = room["game_state"]
+            countdown = room["countdown"]
+        self._broadcast_to_room({
+            "type": "lobby_state", 
+            "players": players, 
+            "game_state": game_state, 
+            "countdown": countdown
+        })
+
+    def _check_game_start(self):
+        if not self.room_id:
+            return
+        with rooms_lock:
+            room = rooms.get(self.room_id)
+            if not room or room["game_state"] != "lobby":
+                return
+            ready_players = sum(1 for v in room["names"].values() if v["ready"])
+            total_players = len(room["names"])
+            if ready_players >= 2 and ready_players == total_players:
+                room["game_state"] = "countdown"
+                room["countdown"] = 5.0
+                threading.Thread(target=self._run_countdown, daemon=True).start()
+
+    def _run_countdown(self):
+        room_id = self.room_id
+        countdown = 5.0
+        while countdown > 0:
+            with rooms_lock:
+                room = rooms.get(room_id)
+                if not room or room["game_state"] != "countdown":
+                    return
+                room["countdown"] = countdown
+            self._broadcast_lobby_state()
+            time.sleep(1.0)
+            countdown -= 1.0
+        
+        with rooms_lock:
+            room = rooms.get(room_id)
+            if room and room["game_state"] == "countdown":
+                room["game_state"] = "playing"
+                room["countdown"] = 0.0
+        self._broadcast_to_room({"type": "game_start"})
 
     def _broadcast_to_room(self, obj, exclude_self=False):
         room_id = self.room_id

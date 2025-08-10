@@ -13,6 +13,8 @@ class NetClient:
         self.alive = False
         self.client_id = None
         self.room = None
+        self.ready = False
+        self.lobby_state = {"players": [], "game_state": "lobby", "countdown": 0.0}
 
     def connect(self, timeout=5.0):
         self.sock = socket.create_connection((self.host, self.port), timeout=timeout)
@@ -41,7 +43,12 @@ class NetClient:
             self.close()
 
     def join(self, room, name, ch):
+        self.room = room
         self._send({"type": "join", "room": room, "name": name, "ch": ch})
+
+    def set_ready(self, ready):
+        self.ready = ready
+        self._send({"type": "ready", "ready": ready})
 
     def send_state(self, x, y, hp):
         self._send({"type": "state", "x": x, "y": y, "hp": hp})
