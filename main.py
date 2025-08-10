@@ -84,6 +84,9 @@ def main(stdscr):
     stdscr.clear()
     stdscr.refresh()
     time.sleep(0.1)
+    
+    stdscr.nodelay(True)
+    stdscr.timeout(0)
 
     entities = []
     projectiles = []
@@ -170,9 +173,13 @@ def main(stdscr):
 
     push_msg("🔥 IMMORTAL COOL PRO BATTLE ROYALE 🔥", ttl=4.0, color=curses.COLOR_RED)
     push_msg("Controls: A/D move, W jump, S attack, F special, Q quit", ttl=3.0)
+    push_msg(f"Playing as: {char_data.name} ({char_emoji})", ttl=3.0)
 
     running = True
     while running:
+        if game_time < 0.1:
+            push_msg("Game loop started!", ttl=0.5)
+            
         t0 = time.time()
         elapsed = t0 - last
         last = t0

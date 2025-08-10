@@ -5,7 +5,7 @@ import time
 
 def test_server_connection():
     try:
-        sock = socket.create_connection(("127.0.0.1", 8765), timeout=5)
+        sock = socket.create_connection(("khaled.hackclub.app", 15478), timeout=5)
         print("Connected to server")
         
         join_msg = {"type": "join", "room": "test_room", "name": "TestPlayer", "ch": "😎"}
